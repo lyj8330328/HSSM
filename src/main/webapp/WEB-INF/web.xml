@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+    <!-- spring的配置文件 -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml</param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!-- spring mvc核心：分发servlet ,拦截所有请求-->
+    <servlet>
+        <servlet-name>mvc-dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!-- spring mvc的配置文件 -->
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:springMVC.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mvc-dispatcher</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    <!-- 配置编码方式过滤器，且必须配置在所有的过滤器最前面 -->
+    <filter>
+        <filter-name>characterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>forceRequestEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>forceResponseEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>characterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <!-- 为了使用SpringMVC框架实现REST，需配置HiddenHttpMethodFilter -->
+    <filter>
+        <filter-name>hiddenHttpMethodFilter</filter-name>
+        <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>hiddenHttpMethodFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 处理put等请求 -->
+    <!--
+        Tomcat:
+              1.将请求体中的数据，封装为一个map对象
+              2.request.getParameter("empName")就会从这个map中取值。
+              3.Spring MVC封装POJO对象时，会把POJO中每个属性的值通过调用request.getParameter来进行获取
+        AJAX发送PUT请求：
+              PUT请求，请求体中的数据，request.getParameter拿不到
+              Tomcat一看是PUT请求，就不会封装请求体中的数据为map，只有POST形式的请求才封装请求体为map
+    -->
+    <!--
+    HttpPutFormContentFilter的作用：
+        将原来请求体中的数据重新封装成一个MultiValueMap<String, String> formParameters 对象，
+        然后重写HttpServletRequest中的getParameter，如果从原来的queryStringValue中找不到数据，那么就去formParameters中找
+    -->
+    <filter>
+        <filter-name>HttpPutFormContentFilter </filter-name>
+        <filter-class>org.springframework.web.filter.HttpPutFormContentFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>HttpPutFormContentFilter </filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+</web-app>
